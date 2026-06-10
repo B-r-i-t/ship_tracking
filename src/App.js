@@ -414,13 +414,7 @@ function Home({ onTrack }) {
             {loading ? <span className="spinner" /> : "Track"}
           </button>
         </div>
-        <div className="examples">
-          {["SHT001ABC", "SHT002XYZ", "SHT003DEF"].map(id => (
-            <span key={id} className="example-chip" onClick={() => { setInput(id); handleSearch(id); }}>
-              {id}
-            </span>
-          ))}
-        </div>
+        
       </div>
 
       {error && (
