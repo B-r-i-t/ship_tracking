@@ -491,7 +491,7 @@ function TrackingResult({ shipment: s }) {
 
 // ─── ADMIN LOGIN ──────────────────────────────────────────────────────────────
 function AdminLogin({ onLogin }) {
-  const [email, setEmail] = useState("admin@shiptrack.com");
+  const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
@@ -499,9 +499,19 @@ function AdminLogin({ onLogin }) {
   const handle = async () => {
     if (!email || !pass) { setErr("Please fill in all fields"); return; }
     setLoading(true); setErr("");
-    await delay(800);
-    if (email === "admin@shiptrack.com" && pass === "admin123") onLogin();
-    else setErr("Invalid credentials. Use admin@shiptrack.com / admin123");
+    try {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password: pass }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Invalid credentials");
+      localStorage.setItem("token", data.token);
+      onLogin();
+    } catch (e) {
+      setErr(e.message);
+    }
     setLoading(false);
   };
 
@@ -516,14 +526,11 @@ function AdminLogin({ onLogin }) {
         {err && <div className="error-box" style={{ marginBottom: 16 }}><span>⚠️</span>{err}</div>}
         <div className="form-group">
           <label className="form-label">Email</label>
-          <input className="form-input" value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder="admin@shiptrack.com" />
+          <input className="form-input" value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder="Enter your email" />
         </div>
         <div className="form-group">
           <label className="form-label">Password</label>
           <input className="form-input" value={pass} onChange={e => { setPass(e.target.value); setErr(""); }} type="password" placeholder="Enter password" onKeyDown={e => e.key === "Enter" && handle()} />
-        </div>
-        <div style={{ fontSize: 12, color: "var(--text3)", marginBottom: 16, padding: "8px 12px", background: "var(--surface2)", borderRadius: "var(--r)" }}>
-          Demo: admin@shiptrack.com / admin123
         </div>
         <button className="btn btn-primary" style={{ width: "100%", justifyContent: "center", padding: "12px" }} onClick={handle} disabled={loading}>
           {loading ? <span className="spinner" /> : "Sign In"}
