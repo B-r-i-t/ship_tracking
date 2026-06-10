@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 
 // ─── Mock Data Store ──────────────────────────────────────────────────────────
-const generateId = () => "SHT" + Math.random().toString(36).substr(2, 9).toUpperCase();
 
 const STATUSES = ["Processing", "In Transit", "Out for Delivery", "Delivered", "Delayed"];
 const STATUS_COLORS = {
@@ -19,66 +18,6 @@ const STATUS_ICONS = {
   Delayed: "⚠️",
 };
 
-const SEED_SHIPMENTS = [
-  {
-    id: "SHT001ABC",
-    sender: "GlobalTech Industries",
-    receiver: "Sarah Mitchell",
-    origin: "Lagos, Nigeria",
-    destination: "London, UK",
-    status: "In Transit",
-    createdAt: "2025-05-28",
-    estimatedDelivery: "2025-06-10",
-    weight: "2.4 kg",
-    service: "Express International",
-    history: [
-      { date: "2025-05-28 09:00", event: "Shipment created", location: "Lagos, Nigeria", icon: "📦" },
-      { date: "2025-05-29 14:30", event: "Picked up by courier", location: "Lagos, Nigeria", icon: "🚚" },
-      { date: "2025-05-30 08:15", event: "Departed origin facility", location: "Lagos Airport, Nigeria", icon: "✈️" },
-      { date: "2025-06-01 22:45", event: "Arrived at international hub", location: "Dubai Hub, UAE", icon: "🏭" },
-      { date: "2025-06-03 10:00", event: "In transit to destination", location: "Heathrow Hub, UK", icon: "🚚" },
-    ],
-  },
-  {
-    id: "SHT002XYZ",
-    sender: "Amazon Fulfillment",
-    receiver: "John Adebayo",
-    origin: "New York, USA",
-    destination: "Port Harcourt, Nigeria",
-    status: "Processing",
-    createdAt: "2025-06-02",
-    estimatedDelivery: "2025-06-15",
-    weight: "1.1 kg",
-    service: "Standard International",
-
-    history: [
-      { date: "2025-06-02 11:00", event: "Order received", location: "New York, USA", icon: "📋" },
-      { date: "2025-06-02 16:45", event: "Shipment created", location: "New York, USA", icon: "📦" },
-      { date: "2025-06-03 09:00", event: "Processing at origin facility", location: "JFK Hub, USA", icon: "⚙️" },
-    ],
-  },
-  {
-    id: "SHT003DEF",
-    sender: "TechMart Ltd",
-    receiver: "Emma Chen",
-    origin: "Shenzhen, China",
-    destination: "Toronto, Canada",
-    status: "Delivered",
-    createdAt: "2025-05-15",
-    estimatedDelivery: "2025-05-30",
-    weight: "3.8 kg",
-    service: "Premium Express",
-    history: [
-      { date: "2025-05-15 08:00", event: "Shipment created", location: "Shenzhen, China", icon: "📦" },
-      { date: "2025-05-16 12:00", event: "Picked up", location: "Shenzhen, China", icon: "🚚" },
-      { date: "2025-05-17 20:00", event: "Departed origin", location: "Shenzhen Airport", icon: "✈️" },
-      { date: "2025-05-20 06:00", event: "Arrived destination country", location: "Toronto, Canada", icon: "🏭" },
-      { date: "2025-05-21 09:00", event: "Customs cleared", location: "Toronto, Canada", icon: "✔️" },
-      { date: "2025-05-22 14:30", event: "Out for delivery", location: "Toronto East Hub", icon: "🏠" },
-      { date: "2025-05-22 16:45", event: "Delivered to recipient", location: "Toronto, Canada", icon: "✅" },
-    ],
-  },
-];
 
 // ─── Simulated API ────────────────────────────────────────────────────────────
 
