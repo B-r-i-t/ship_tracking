@@ -389,8 +389,10 @@ function Home({ onTrack }) {
     if (q.length < 4) { setError("Tracking ID must be at least 4 characters"); return; }
     setLoading(true); setError(""); setResult(null);
     try {
-      const r = await api.track(q);
-      setResult(r);
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/shipments/${q}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Tracking ID not found");
+      setResult(data);
     } catch (e) { setError(e.message); }
     finally { setLoading(false); }
   };
