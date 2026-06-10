@@ -392,7 +392,7 @@ function Home({ onTrack }) {
       const res = await fetch(`${process.env.REACT_APP_API_URL}/api/shipments/${q}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Tracking ID not found");
-      setResult(data);
+      setResult(data.shipment);
     } catch (e) { setError(e.message); }
     finally { setLoading(false); }
   };
