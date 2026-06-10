@@ -50,7 +50,7 @@ const SEED_SHIPMENTS = [
     estimatedDelivery: "2025-06-15",
     weight: "1.1 kg",
     service: "Standard International",
-    
+
     history: [
       { date: "2025-06-02 11:00", event: "Order received", location: "New York, USA", icon: "📋" },
       { date: "2025-06-02 16:45", event: "Shipment created", location: "New York, USA", icon: "📦" },
@@ -416,7 +416,7 @@ function Home({ onTrack }) {
             {loading ? <span className="spinner" /> : "Track"}
           </button>
         </div>
-        
+
       </div>
 
       {error && (
@@ -547,8 +547,13 @@ function AdminDashboard({ onLogout, showToast }) {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const data = await api.getAll();
-    setShipments(data);
+    try {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/shipments`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+      });
+      const data = await res.json();
+      setShipments(data.shipments || []);
+    } catch (e) { console.error(e); }
     setLoading(false);
   }, []);
 
@@ -602,7 +607,10 @@ function AdminDashboard({ onLogout, showToast }) {
             onDelete={async s => {
               // eslint-disable-next-line no-restricted-globals
               if (!window.confirm(`Delete shipment ${s.id}?`)) return;
-              await api.delete(s.id);
+              await fetch(`${process.env.REACT_APP_API_URL}/api/admin/shipments/${s._id}`, {
+                method: "DELETE",
+                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+              });
               showToast("Shipment deleted", "error");
               load();
             }}
@@ -617,7 +625,11 @@ function AdminDashboard({ onLogout, showToast }) {
           shipment={modal.shipment}
           onClose={() => setModal(null)}
           onSave={async (updates) => {
-            await api.update(modal.shipment.id, updates);
+            await fetch(`${process.env.REACT_APP_API_URL}/api/admin/shipments/${modal.shipment._id}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("token")}` },
+              body: JSON.stringify(updates)
+            });
             showToast("Shipment updated", "success");
             setModal(null); load();
           }}
@@ -628,7 +640,11 @@ function AdminDashboard({ onLogout, showToast }) {
           shipment={modal.shipment}
           onClose={() => setModal(null)}
           onSave={async (event) => {
-            await api.addEvent(modal.shipment.id, event);
+            await fetch(`${process.env.REACT_APP_API_URL}/api/admin/shipments/${modal.shipment._id}/events`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("token")}` },
+              body: JSON.stringify(event)
+            });
             showToast("Event added", "success");
             setModal(null); load();
           }}
@@ -705,7 +721,22 @@ function CreateTab({ onCreated }) {
   const submit = async () => {
     if (!form.sender || !form.receiver || !form.origin || !form.destination) return alert("Please fill in all required fields");
     setLoading(true);
-    const s = await api.create(form);
+    const res = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/shipments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("token")}` },
+      body: JSON.stringify({
+        sender: { name: form.sender },
+        receiver: { name: form.receiver },
+        origin: form.origin,
+        destination: form.destination,
+        status: form.status,
+        estimatedDelivery: form.estimatedDelivery,
+        service: form.service,
+        weight: form.weight
+      })
+    });
+    const data = await res.json();
+    const s = data.shipment;
     setLoading(false);
     setForm(init);
     onCreated(s);
