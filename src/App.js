@@ -590,7 +590,7 @@ function ShipmentsTab({ shipments, allShipments, filter, setFilter, search, setS
             <tbody>
               {shipments.map(s => (
                 <tr key={s.id}>
-                  <td><span className="id-chip">{s.id}</span></td>
+                  <td><span className="id-chip">{s.trackingId}</span></td>
                   <td><div style={{ fontWeight: 500, fontSize: 14 }}>{s.receiver?.name || s.receiver}</div><div style={{ fontSize: 11, color: "var(--text3)" }}>{s.sender?.name || s.sender}</div></td>
                   <td style={{ color: "var(--text2)", fontSize: 13 }}>{s.destination}</td>
                   <td><StatusBadge status={s.status} /></td>
