@@ -81,47 +81,9 @@ const SEED_SHIPMENTS = [
 ];
 
 // ─── Simulated API ────────────────────────────────────────────────────────────
-const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 
-class ShipmentAPI {
-  constructor() {
-    this.data = [...SEED_SHIPMENTS];
-  }
-  async track(id) {
-    await delay(800);
-    const s = this.data.find((x) => x.id.toUpperCase() === id.toUpperCase());
-    if (!s) throw new Error("Tracking ID not found");
-    return s;
-  }
-  async getAll() {
-    await delay(300);
-    return [...this.data];
-  }
-  async create(shipment) {
-    await delay(400);
-    const newS = { ...shipment, id: generateId(), createdAt: new Date().toISOString().split("T")[0], history: [{ date: new Date().toLocaleString(), event: "Shipment created", location: shipment.origin, icon: "📦" }] };
-    this.data.unshift(newS);
-    return newS;
-  }
-  async update(id, updates) {
-    await delay(300);
-    const idx = this.data.findIndex((x) => x.id === id);
-    if (idx === -1) throw new Error("Not found");
-    this.data[idx] = { ...this.data[idx], ...updates };
-    return this.data[idx];
-  }
-  async addEvent(id, event) {
-    await delay(300);
-    const idx = this.data.findIndex((x) => x.id === id);
-    if (idx === -1) throw new Error("Not found");
-    this.data[idx].history.push({ date: new Date().toLocaleString(), ...event });
-    return this.data[idx];
-  }
-  async delete(id) {
-    await delay(300);
-    this.data = this.data.filter((x) => x.id !== id);
-  }
-}
+
+
 
 
 // ─── Styles ────────────────────────────────────────────────────────────────────
