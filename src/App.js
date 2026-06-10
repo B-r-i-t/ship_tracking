@@ -123,7 +123,6 @@ class ShipmentAPI {
   }
 }
 
-const api = new ShipmentAPI();
 
 // ─── Styles ────────────────────────────────────────────────────────────────────
 const css = `
