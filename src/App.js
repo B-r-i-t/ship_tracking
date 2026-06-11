@@ -360,7 +360,7 @@ function TrackingResult({ shipment: s }) {
         </div>
 
         <div className="info-grid mb-24">
-          {[["From", s.sender], ["To", s.receiver], ["Origin", s.origin], ["Destination", s.destination], ["Service", s.service], ["Weight", s.weight], ["Est. Delivery", s.estimatedDelivery], ["Created", s.createdAt]].map(([l, v]) => (
+          {[["From", s.sender?.name || s.sender], ["To", s.receiver?.name || s.receiver], ["Origin", s.origin], ["Destination", s.destination], ["Service", s.service], ["Weight", s.weight ? `${s.weight} kg` : ""], ["Est. Delivery", s.estimatedDelivery], ["Created", s.createdAt]].map(([l, v]) => (
             <div key={l} className="info-item">
               <div className="info-label">{l}</div>
               <div className="info-value">{v}</div>
