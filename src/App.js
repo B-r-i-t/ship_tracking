@@ -1,4 +1,15 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react"; import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+// Fix leaflet marker icons
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+});
+
 
 // ─── Mock Data Store ──────────────────────────────────────────────────────────
 
@@ -380,6 +391,76 @@ function TrackingResult({ shipment: s }) {
             </div>
           ))}
         </div>
+        <ShipmentMap shipment={s} />
+      </div>
+    </div>
+  );
+}
+// ─── SHIPMENT MAP ─────────────────────────────────────────────────────────────
+function ShipmentMap({ shipment }) {
+  const [coords, setCoords] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const geocode = async (place) => {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(place)}&format=json&limit=1`);
+      const data = await res.json();
+      if (data[0]) return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+      return null;
+    };
+
+    const loadCoords = async () => {
+      setLoading(true);
+      try {
+        const [origin, destination] = await Promise.all([
+          geocode(shipment.origin),
+          geocode(shipment.destination)
+        ]);
+        if (origin && destination) setCoords({ origin, destination });
+      } catch (e) { console.error(e); }
+      setLoading(false);
+    };
+
+    loadCoords();
+  }, [shipment.origin, shipment.destination]);
+
+  if (loading) return (
+    <div style={{ height: 300, background: "var(--surface2)", borderRadius: "var(--r)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text3)" }}>
+      <span className="spinner" style={{ display: "inline-block", borderColor: "var(--text3)", borderRightColor: "transparent" }} />
+    </div>
+  );
+
+  if (!coords) return null;
+
+  const center = [
+    (coords.origin[0] + coords.destination[0]) / 2,
+    (coords.origin[1] + coords.destination[1]) / 2
+  ];
+
+  return (
+    <div style={{ borderRadius: "var(--r)", overflow: "hidden", marginTop: 24, border: "1px solid var(--border)" }}>
+      <MapContainer center={center} zoom={3} style={{ height: 320, width: "100%" }} scrollWheelZoom={false}>
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        <Marker position={coords.origin}>
+          <Popup>📦 Origin: {shipment.origin}</Popup>
+        </Marker>
+        <Marker position={coords.destination}>
+          <Popup>🏠 Destination: {shipment.destination}</Popup>
+        </Marker>
+        <Polyline
+          positions={[coords.origin, coords.destination]}
+          color="#1d6ae5"
+          weight={2}
+          dashArray="8 6"
+        />
+      </MapContainer>
+      <div style={{ padding: "12px 16px", background: "var(--surface)", borderTop: "1px solid var(--border)", display: "flex", gap: 16, fontSize: 13, color: "var(--text2)" }}>
+        <span>📦 <strong>From:</strong> {shipment.origin}</span>
+        <span>→</span>
+        <span>🏠 <strong>To:</strong> {shipment.destination}</span>
       </div>
     </div>
   );
