@@ -369,6 +369,7 @@ function TrackingResult({ shipment: s }) {
             <QRButton shipment={s} />
           </div>
           <ProgressBar status={s.status} />
+          <CountdownTimer estimatedDelivery={s.estimatedDelivery} status={s.status} />
         </div>
 
         <div className="info-grid mb-24">
