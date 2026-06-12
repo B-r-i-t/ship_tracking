@@ -442,7 +442,7 @@ function ShipmentMap({ shipment }) {
       <MapContainer center={center} zoom={3} style={{ height: 320, width: "100%" }} scrollWheelZoom={false}>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
         />
         <Marker position={coords.origin}>
           <Popup>📦 Origin: {shipment.origin}</Popup>
