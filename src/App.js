@@ -1036,7 +1036,7 @@ export default function App() {
           <div className="nav-inner">
             <div className="logo" onClick={() => setPage("home")}>
               <div className="logo-icon">📦</div>
-              ShipTrack
+              EN-HANG LOGISTICS
             </div>
             <div className="nav-links">
               <button className={`nav-btn${page === "home" ? " active" : ""}`} onClick={() => setPage("home")}>Track</button>
