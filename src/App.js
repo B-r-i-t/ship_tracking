@@ -363,9 +363,10 @@ function TrackingResult({ shipment: s }) {
           <div className="flex items-center justify-between mb-16" style={{ flexWrap: "wrap", gap: 8 }}>
             <div>
               <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.8px", color: "var(--text3)", fontWeight: 600, marginBottom: 4 }}>Tracking ID</div>
-              <span className="id-chip" style={{ fontSize: 15, fontWeight: 700 }}>{s.id}</span>
+              <span className="id-chip" style={{ fontSize: 15, fontWeight: 700 }}>{s.trackingId || s.id}</span>
             </div>
             <StatusBadge status={s.status} />
+            <QRButton shipment={s} />
           </div>
           <ProgressBar status={s.status} />
         </div>
@@ -392,6 +393,137 @@ function TrackingResult({ shipment: s }) {
           ))}
         </div>
         <ShipmentMap shipment={s} />
+      </div>
+    </div>
+  );
+}
+
+
+// ─── QR CODE MODAL ────────────────────────────────────────────────────────────
+function QRModal({ shipment, onClose }) {
+  const trackingUrl = `${window.location.origin}?track=${shipment.trackingId}`;
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(trackingUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      await navigator.share({ title: `Track shipment ${shipment.trackingId}`, url: trackingUrl });
+    } else {
+      handleCopy();
+    }
+  };
+
+  const handleDownload = () => {
+    const link = document.createElement('a');
+    link.download = `qr-${shipment.trackingId}.png`;
+    link.href = shipment.qrCode;
+    link.click();
+  };
+
+  return (
+    <div className="modal-backdrop" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="modal" style={{ maxWidth: 380, textAlign: "center" }}>
+        <div className="modal-header">
+          <div className="modal-title">Share Tracking</div>
+          <button className="modal-close" onClick={onClose}>✕</button>
+        </div>
+        <div style={{ fontSize: 13, color: "var(--text2)", marginBottom: 20 }}>
+          Tracking ID: <span className="id-chip">{shipment.trackingId}</span>
+        </div>
+        {shipment.qrCode ? (
+          <img src={shipment.qrCode} alt="QR Code" style={{ width: 200, height: 200, borderRadius: 12, border: "1px solid var(--border)", marginBottom: 20 }} />
+        ) : (
+          <div style={{ width: 200, height: 200, background: "var(--surface2)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", color: "var(--text3)" }}>
+            No QR Code
+          </div>
+        )}
+        <div style={{ background: "var(--surface2)", borderRadius: "var(--r)", padding: "10px 14px", fontSize: 12, color: "var(--text2)", marginBottom: 20, wordBreak: "break-all" }}>
+          {trackingUrl}
+        </div>
+        <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap" }}>
+          {shipment.qrCode && (
+            <button className="btn btn-secondary btn-sm" onClick={handleDownload}>⬇️ Download QR</button>
+          )}
+          <button className="btn btn-secondary btn-sm" onClick={handleCopy}>
+            {copied ? "✅ Copied!" : "📋 Copy Link"}
+          </button>
+          <button className="btn btn-primary btn-sm" onClick={handleShare}>🔗 Share</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function QRButton({ shipment }) {
+  const [show, setShow] = useState(false);
+  return (
+    <>
+      <button className="btn btn-secondary btn-sm" onClick={() => setShow(true)}>🔗 Share</button>
+      {show && <QRModal shipment={shipment} onClose={() => setShow(false)} />}
+    </>
+  );
+}
+
+// ─── COUNTDOWN TIMER ─────────────────────────────────────────────────────────
+function CountdownTimer({ estimatedDelivery, status }) {
+  const [timeLeft, setTimeLeft] = useState(null);
+
+  useEffect(() => {
+    if (status === "Delivered") { setTimeLeft("delivered"); return; }
+    if (!estimatedDelivery) { setTimeLeft("unavailable"); return; }
+
+    const calc = () => {
+      const diff = new Date(estimatedDelivery) - new Date();
+      if (diff <= 0) { setTimeLeft("overdue"); return; }
+      const d = Math.floor(diff / 86400000);
+      const h = Math.floor((diff % 86400000) / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      setTimeLeft({ d, h, m, s });
+    };
+
+    calc();
+    const interval = setInterval(calc, 1000);
+    return () => clearInterval(interval);
+  }, [estimatedDelivery, status]);
+
+  if (!timeLeft) return null;
+
+  if (timeLeft === "delivered") return (
+    <div style={{ background: "var(--green-bg)", border: "1px solid #86efac", borderRadius: "var(--r)", padding: "16px 20px", marginBottom: 20, textAlign: "center" }}>
+      <div style={{ fontSize: 24 }}>✅</div>
+      <div style={{ fontWeight: 700, color: "var(--green)", fontSize: 16 }}>Delivered!</div>
+    </div>
+  );
+
+  if (timeLeft === "unavailable") return (
+    <div style={{ background: "var(--surface2)", borderRadius: "var(--r)", padding: "12px 20px", marginBottom: 20, textAlign: "center", color: "var(--text3)", fontSize: 13 }}>
+      Estimated delivery unavailable
+    </div>
+  );
+
+  if (timeLeft === "overdue") return (
+    <div style={{ background: "var(--red-bg)", border: "1px solid #fca5a5", borderRadius: "var(--r)", padding: "16px 20px", marginBottom: 20, textAlign: "center" }}>
+      <div style={{ fontSize: 24 }}>⚠️</div>
+      <div style={{ fontWeight: 700, color: "var(--red)", fontSize: 16 }}>Delivery Overdue</div>
+    </div>
+  );
+
+  return (
+    <div style={{ background: "var(--blue-bg)", border: "1px solid #93c5fd", borderRadius: "var(--r)", padding: "16px 20px", marginBottom: 20 }}>
+      <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.8px", color: "var(--blue)", fontWeight: 600, marginBottom: 12, textAlign: "center" }}>Estimated Delivery In</div>
+      <div style={{ display: "flex", justifyContent: "center", gap: 12 }}>
+        {[["Days", timeLeft.d], ["Hours", timeLeft.h], ["Mins", timeLeft.m], ["Secs", timeLeft.s]].map(([label, val]) => (
+          <div key={label} style={{ textAlign: "center", minWidth: 52 }}>
+            <div style={{ fontFamily: "var(--font-display)", fontSize: 28, fontWeight: 700, color: "var(--blue)", lineHeight: 1 }}>{String(val).padStart(2, "0")}</div>
+            <div style={{ fontSize: 10, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.5px", marginTop: 4 }}>{label}</div>
+          </div>
+        ))}
       </div>
     </div>
   );
