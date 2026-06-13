@@ -629,7 +629,7 @@ function AdminLogin({ onLogin }) {
     <div className="login-wrap">
       <div className="login-card">
         <div style={{ textAlign: "center", marginBottom: 24 }}>
-          <div className="logo-icon" style={{ width: 48, height: 48, margin: "0 auto 16px", fontSize: 22 }}>📦</div>
+          <div className="logo-icon" style={{ width: 48, height: 48, margin: "0 auto 16px", fontSize: 22 }}><img src="/logo.png" alt="EN-HANG LOGISTICS" style={{ width: 30, height: 30, borderRadius: 6, objectFit: "cover" }} /></div>
         </div>
         <div className="login-title">Admin Portal</div>
         <div className="login-sub">Sign in to manage shipments</div>
@@ -1035,7 +1035,7 @@ export default function App() {
         <nav className="nav">
           <div className="nav-inner">
             <div className="logo" onClick={() => setPage("home")}>
-              <div className="logo-icon">📦</div>
+              <div className="logo-icon"><img src="/logo.png" alt="EN-HANG LOGISTICS" style={{ width: 30, height: 30, borderRadius: 6, objectFit: "cover" }} /></div>
               EN-HANG LOGISTICS
             </div>
             <div className="nav-links">
