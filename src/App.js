@@ -533,6 +533,7 @@ function CountdownTimer({ estimatedDelivery, status }) {
 function ShipmentMap({ shipment }) {
   const [coords, setCoords] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [route, setRoute] = useState(null);
 
   useEffect(() => {
     const geocode = async (place) => {
@@ -556,6 +557,21 @@ function ShipmentMap({ shipment }) {
 
     loadCoords();
   }, [shipment.origin, shipment.destination]);
+
+  useEffect(() => {
+    if (!coords) return;
+    const fetchRoute = async () => {
+      try {
+        const res = await fetch(
+          `https://api.openrouteservice.org/v2/directions/driving-car?api_key=eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjQ4ZTc2NWZmNDM2MzQyYzViOGZmZjY0YTgyNzExMWU4IiwiaCI6Im11cm11cjY0In0=&start=${coords.origin[1]},${coords.origin[0]}&end=${coords.destination[1]},${coords.destination[0]}`
+        );
+        const data = await res.json();
+        const points = data.features[0].geometry.coordinates.map(([lng, lat]) => [lat, lng]);
+        setRoute(points);
+      } catch (e) { console.error(e); }
+    };
+    fetchRoute();
+  }, [coords]);
 
   if (loading) return (
     <div style={{ height: 300, background: "var(--surface2)", borderRadius: "var(--r)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text3)" }}>
@@ -583,12 +599,11 @@ function ShipmentMap({ shipment }) {
         <Marker position={coords.destination}>
           <Popup>🏠 Destination: {shipment.destination}</Popup>
         </Marker>
-        <Polyline
-          positions={[coords.origin, coords.destination]}
-          color="#1d6ae5"
-          weight={2}
-          dashArray="8 6"
-        />
+        {route ? (
+          <Polyline positions={route} color="#1d6ae5" weight={3} />
+        ) : (
+          <Polyline positions={[coords.origin, coords.destination]} color="#1d6ae5" weight={2} dashArray="8 6" />
+        )}
       </MapContainer>
       <div style={{ padding: "12px 16px", background: "var(--surface)", borderTop: "1px solid var(--border)", display: "flex", gap: 16, fontSize: 13, color: "var(--text2)" }}>
         <span>📦 <strong>From:</strong> {shipment.origin}</span>
