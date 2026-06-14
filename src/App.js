@@ -827,7 +827,7 @@ function ShipmentsTab({ shipments, allShipments, filter, setFilter, search, setS
 }
 
 function CreateTab({ onCreated }) {
-  const init = { sender: "", receiver: "", origin: "", destination: "", status: "Processing", estimatedDelivery: "", weight: "", service: "Standard International" };
+  const init = { sender: "", receiver: "", receiverEmail: "", origin: "", destination: "", status: "Processing", estimatedDelivery: "", weight: "", service: "Standard International" };
   const [form, setForm] = useState(init);
   const [loading, setLoading] = useState(false);
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
@@ -840,7 +840,7 @@ function CreateTab({ onCreated }) {
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("token")}` },
       body: JSON.stringify({
         sender: { name: form.sender },
-        receiver: { name: form.receiver },
+        receiver: { name: form.receiver, email: form.receiverEmail },
         origin: form.origin,
         destination: form.destination,
         status: form.status,
@@ -863,6 +863,7 @@ function CreateTab({ onCreated }) {
         <div className="form-row">
           <div className="form-group"><label className="form-label">Sender *</label><input className="form-input" value={form.sender} onChange={e => set("sender", e.target.value)} placeholder="Company or person name" /></div>
           <div className="form-group"><label className="form-label">Receiver *</label><input className="form-input" value={form.receiver} onChange={e => set("receiver", e.target.value)} placeholder="Recipient name" /></div>
+          <div className="form-group"><label className="form-label">Receiver Email</label><input className="form-input" type="email" value={form.receiverEmail} onChange={e => set("receiverEmail", e.target.value)} placeholder="receiver@email.com" /></div>
         </div>
         <div className="form-row">
           <div className="form-group"><label className="form-label">Origin *</label><input className="form-input" value={form.origin} onChange={e => set("origin", e.target.value)} placeholder="City, Country" /></div>
