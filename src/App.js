@@ -132,6 +132,7 @@ const css = `
   .status-badge { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 6px 16px; font-size: 13px; font-weight: 600; letter-spacing: 0.2px; }
   .status-dot { width: 7px; height: 7px; border-radius: 50%; animation: pulse 2s infinite; }
   @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+  @keyframes floatPackage { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-4px); } }
 
   .progress-track { background: var(--surface2); border-radius: 999px; height: 6px; margin: 20px 0; overflow: visible; position: relative; }
   .progress-fill { height: 100%; border-radius: 999px; transition: width 1s cubic-bezier(.4,0,.2,1); }
@@ -265,24 +266,107 @@ function Toast({ msg, type, onClose }) {
   return <div className={`toast ${type}`}><span>{type === "success" ? "✓" : type === "error" ? "✕" : "ℹ"}</span>{msg}</div>;
 }
 
-function ProgressBar({ status }) {
-  const steps = ["Processing", "In Transit", "Out for Delivery", "Delivered"];
-  const pct = { Processing: 15, "In Transit": 45, "Out for Delivery": 78, Delivered: 100, Delayed: 45 };
-  const cur = steps.indexOf(status === "Delayed" ? "In Transit" : status);
-  const fillColor = status === "Delayed" ? "#ef4444" : status === "Delivered" ? "#10b981" : "#1d6ae5";
+function ProgressBar({ status, history }) {
+  const steps = [
+    { key: "Processing", label: "Processing", icon: "📦" },
+    { key: "In Transit", label: "In Transit", icon: "✈️" },
+    { key: "Out for Delivery", label: "Out for Delivery", icon: "🚚" },
+    { key: "Delivered", label: "Delivered", icon: "✅" },
+  ];
+
+  const statusIndex = {
+    Processing: 0,
+    "In Transit": 1,
+    "Out for Delivery": 2,
+    Delivered: 3,
+    Delayed: 1,
+  };
+
+  const cur = statusIndex[status] ?? 0;
+  const pct = [0, 33, 66, 100][cur];
+  const isDelayed = status === "Delayed";
+  const fillColor = isDelayed ? "#ef4444" : "#1d6ae5";
+
   return (
-    <div>
-      <div className="progress-track">
-        <div className="progress-fill" style={{ width: `${pct[status] || 0}%`, background: fillColor }} />
-      </div>
-      <div className="progress-steps">
-        {steps.map((s, i) => (
-          <div key={s} className={`progress-step${i < cur ? " done" : ""}${i === cur ? " current" : ""}`}>
-            <span style={{ fontSize: 14 }}>{i <= cur ? "●" : "○"}</span>
-            <span>{s}</span>
+    <div style={{ padding: "8px 0" }}>
+      {/* Step icons row */}
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, position: "relative" }}>
+        {/* Background track */}
+        <div style={{ position: "absolute", top: 20, left: "5%", right: "5%", height: 4, background: "rgba(0,0,0,0.08)", borderRadius: 999, zIndex: 0 }} />
+
+        {/* Animated fill */}
+        <div style={{
+          position: "absolute", top: 20, left: "5%", height: 4,
+          width: `${pct * 0.9}%`,
+          background: fillColor,
+          borderRadius: 999, zIndex: 1,
+          transition: "width 1.2s cubic-bezier(.4,0,.2,1)"
+        }} />
+
+        {/* Moving package indicator */}
+        {!isDelayed && status !== "Delivered" && (
+          <div style={{
+            position: "absolute", top: 10, zIndex: 2,
+            left: `calc(${pct * 0.9}% + 5% - 12px)`,
+            transition: "left 1.2s cubic-bezier(.4,0,.2,1)",
+            fontSize: 20,
+            animation: "floatPackage 1.5s ease-in-out infinite"
+          }}>
+            {status === "Out for Delivery" ? "🚚" : status === "In Transit" ? "✈️" : "📦"}
           </div>
-        ))}
+        )}
+
+        {steps.map((step, i) => {
+          const done = i < cur;
+          const active = i === cur;
+          return (
+            <div key={step.key} style={{ display: "flex", flexDirection: "column", alignItems: "center", zIndex: 2, flex: 1 }}>
+              <div style={{
+                width: 40, height: 40,
+                borderRadius: "50%",
+                background: done ? fillColor : active ? fillColor : "var(--surface2)",
+                border: `3px solid ${done || active ? fillColor : "var(--border)"}`,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 18,
+                boxShadow: active ? `0 0 0 4px ${fillColor}30` : "none",
+                transition: "all 0.4s ease",
+                position: "relative"
+              }}>
+                {done ? "✓" : step.icon}
+              </div>
+            </div>
+          );
+        })}
       </div>
+
+      {/* Labels row */}
+      <div style={{ display: "flex", justifyContent: "space-between" }}>
+        {steps.map((step, i) => {
+          const done = i < cur;
+          const active = i === cur;
+          return (
+            <div key={step.key} style={{ flex: 1, textAlign: "center" }}>
+              <div style={{
+                fontSize: 10,
+                fontWeight: active ? 700 : 500,
+                color: done || active ? "var(--text)" : "var(--text3)",
+                textTransform: "uppercase",
+                letterSpacing: "0.5px",
+                transition: "all 0.3s"
+              }}>
+                {step.label}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Delayed banner */}
+      {isDelayed && (
+        <div style={{ marginTop: 12, background: "var(--red-bg)", border: "1px solid #fca5a5", borderRadius: "var(--r)", padding: "8px 14px", fontSize: 12, color: "var(--red)", display: "flex", alignItems: "center", gap: 6 }}>
+          ⚠️ <strong>Shipment Delayed</strong> — We apologize for the inconvenience
+        </div>
+      )}
     </div>
   );
 }
@@ -614,7 +698,7 @@ function ShipmentMap({ shipment }) {
   );
 }
 
-// ─── ADMIN LOGIN ──────────────────────────────────────────────────────────────
+// ─── ADMIN LOGIN ──────────────────────────f────────────────────────────────────
 function AdminLogin({ onLogin }) {
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
