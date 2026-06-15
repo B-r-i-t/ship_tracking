@@ -998,7 +998,17 @@ function CreateTab({ onCreated }) {
 }
 
 function EditModal({ shipment, onClose, onSave }) {
-  const [form, setForm] = useState({ sender: shipment.sender, receiver: shipment.receiver, origin: shipment.origin, destination: shipment.destination, status: shipment.status, estimatedDelivery: shipment.estimatedDelivery, weight: shipment.weight || "", service: shipment.service || "" });
+  const [form, setForm] = useState({
+    sender: shipment.sender?.name || shipment.sender || "",
+    receiver: shipment.receiver?.name || shipment.receiver || "",
+    receiverEmail: shipment.receiver?.email || "",
+    origin: shipment.origin || "",
+    destination: shipment.destination || "",
+    status: shipment.status || "Processing",
+    estimatedDelivery: shipment.estimatedDelivery ? shipment.estimatedDelivery.split("T")[0] : "",
+    weight: shipment.weight || "",
+    service: shipment.service || ""
+  });
   const [loading, setLoading] = useState(false);
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
@@ -1009,11 +1019,14 @@ function EditModal({ shipment, onClose, onSave }) {
           <div className="modal-title">Edit Shipment</div>
           <button className="modal-close" onClick={onClose}>✕</button>
         </div>
-        <div style={{ fontSize: 12, color: "var(--text3)", marginBottom: 20 }}>ID: <span className="id-chip">{shipment.id}</span></div>
+        <div style={{ fontSize: 12, color: "var(--text3)", marginBottom: 20 }}>
+          ID: <span className="id-chip">{shipment.trackingId}</span>
+        </div>
         <div className="form-row">
           <div className="form-group"><label className="form-label">Sender</label><input className="form-input" value={form.sender} onChange={e => set("sender", e.target.value)} /></div>
           <div className="form-group"><label className="form-label">Receiver</label><input className="form-input" value={form.receiver} onChange={e => set("receiver", e.target.value)} /></div>
         </div>
+        <div className="form-group"><label className="form-label">Receiver Email</label><input className="form-input" type="email" value={form.receiverEmail} onChange={e => set("receiverEmail", e.target.value)} placeholder="receiver@email.com" /></div>
         <div className="form-row">
           <div className="form-group"><label className="form-label">Origin</label><input className="form-input" value={form.origin} onChange={e => set("origin", e.target.value)} /></div>
           <div className="form-group"><label className="form-label">Destination</label><input className="form-input" value={form.destination} onChange={e => set("destination", e.target.value)} /></div>
@@ -1024,10 +1037,34 @@ function EditModal({ shipment, onClose, onSave }) {
               {STATUSES.map(s => <option key={s}>{s}</option>)}
             </select>
           </div>
-          <div className="form-group"><label className="form-label">Est. Delivery</label><input className="form-input" type="date" value={form.estimatedDelivery} onChange={e => set("estimatedDelivery", e.target.value)} /></div>
+          <div className="form-group"><label className="form-label">Est. Delivery</label>
+            <input className="form-input" type="date" value={form.estimatedDelivery} onChange={e => set("estimatedDelivery", e.target.value)} />
+          </div>
+        </div>
+        <div className="form-row">
+          <div className="form-group"><label className="form-label">Service</label>
+            <select className="form-input" value={form.service} onChange={e => set("service", e.target.value)}>
+              {["Standard International", "Express International", "Premium Express", "Economy"].map(s => <option key={s}>{s}</option>)}
+            </select>
+          </div>
+          <div className="form-group"><label className="form-label">Weight (kg)</label>
+            <input className="form-input" value={form.weight} onChange={e => set("weight", e.target.value)} placeholder="e.g. 2.5 kg" />
+          </div>
         </div>
         <div className="flex gap-8" style={{ marginTop: 8 }}>
-          <button className="btn btn-primary" disabled={loading} onClick={async () => { setLoading(true); await onSave(form); }}>
+          <button className="btn btn-primary" disabled={loading} onClick={async () => {
+            setLoading(true);
+            await onSave({
+              sender: { name: form.sender },
+              receiver: { name: form.receiver, email: form.receiverEmail },
+              origin: form.origin,
+              destination: form.destination,
+              status: form.status,
+              estimatedDelivery: form.estimatedDelivery,
+              weight: form.weight,
+              service: form.service
+            });
+          }}>
             {loading ? <span className="spinner" /> : "Save Changes"}
           </button>
           <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
