@@ -35,7 +35,6 @@ const STATUS_ICONS = {
 
 
 
-
 // ─── Styles ────────────────────────────────────────────────────────────────────
 const css = `
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap');
@@ -245,6 +244,7 @@ const css = `
   .chip { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 6px 12px; font-size: 13px; cursor: pointer; transition: all 0.15s; color: var(--text2); }
   .chip.active, .chip:hover { background: var(--text); color: var(--surface); border-color: var(--text); }
   .id-chip { font-family: monospace; font-size: 12px; background: var(--surface2); border-radius: 6px; padding: 2px 7px; color: var(--text2); }
+  .leaflet-container { height: 320px !important; width: 100% !important; z-index: 1 !important; }
 `;
 
 // ─── Components ───────────────────────────────────────────────────────────────
@@ -690,7 +690,10 @@ function AdminDashboard({ onLogout, showToast }) {
 
   const filtered = shipments.filter(s => {
     const matchStatus = filter === "All" || s.status === filter;
-    const matchSearch = !search || s.id.toLowerCase().includes(search.toLowerCase()) || s.receiver.toLowerCase().includes(search.toLowerCase()) || s.sender.toLowerCase().includes(search.toLowerCase());
+    const matchSearch = !search ||
+      (s.trackingId || "").toLowerCase().includes(search.toLowerCase()) ||
+      (s.receiver?.name || "").toLowerCase().includes(search.toLowerCase()) ||
+      (s.sender?.name || "").toLowerCase().includes(search.toLowerCase());
     return matchStatus && matchSearch;
   });
 
