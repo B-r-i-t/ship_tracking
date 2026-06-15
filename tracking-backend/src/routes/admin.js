@@ -98,7 +98,7 @@ router.patch("/shipments/:id", async (req, res, next) => {
     if (!shipment) return res.status(404).json({ error: "Shipment not found." });
 
     // Send status notification email if status changed
-    if (updates.status && shipment.notifications?.email && shipment.receiver?.email) {
+    if (updates.status && shipment.receiver?.email) {
       try { await sendStatusEmail(shipment); } catch (_) { /* non-critical */ }
     }
 
