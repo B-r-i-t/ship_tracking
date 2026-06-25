@@ -929,7 +929,7 @@ function ShipmentsTab({ shipments, allShipments, filter, setFilter, search, setS
 }
 
 function CreateTab({ onCreated }) {
-  const init = { sender: "", receiver: "", receiverEmail: "", origin: "", destination: "", status: "Processing", estimatedDelivery: "", weight: "", service: "Standard International" };
+  const init = { sender: "", receiver: "", receiverEmail: "", origin: "", destination: "", status: "Processing", shippedDate: "", estimatedDelivery: "", weight: "", service: "Standard International" };
   const [form, setForm] = useState(init);
   const [loading, setLoading] = useState(false);
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
